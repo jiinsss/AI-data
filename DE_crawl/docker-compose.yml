@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql:latest
+    container_name: db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true" 
+    restart: always
+    volumes:  
+      - "./mysqldata/db:/var/lib/mysql"
+      - "./mysqldata/mysql-init:/docker-entrypoint-initdb.d"
+      - "./mysqldata/conf.d:/etc/mysql/conf.d"
+
+
+
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  python:
+    image: python:latest
+    restart: always
+    stdin_open: true
+    tty: true
+    depends_on:
+      - db
+    volumes:
+      - type: bind
+        source: ./code
+        target: /code
+        read_only: false
+
+    links:
+      - db
+    build:
+      context: .
+
+
